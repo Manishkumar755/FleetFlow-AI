@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Server, Cpu, Database, CheckCircle, RefreshCw, Globe, Shield } from 'lucide-react';
-import { djangoClient, fastapiClient } from '../api/client';
+import { djangoClient, fastapiClient, DJANGO_BASE_URL, FASTAPI_BASE_URL } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
 export default function Settings() {
@@ -97,7 +97,7 @@ export default function Settings() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Target Endpoint</span>
-              <span style={{ fontFamily: 'monospace', color: '#fff' }}>http://localhost:8000</span>
+              <span style={{ fontFamily: 'monospace', color: '#fff' }}>{DJANGO_BASE_URL}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Ping Latency</span>
@@ -129,7 +129,7 @@ export default function Settings() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Target Endpoint</span>
-              <span style={{ fontFamily: 'monospace', color: '#fff' }}>http://localhost:8001</span>
+              <span style={{ fontFamily: 'monospace', color: '#fff' }}>{FASTAPI_BASE_URL}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', borderBottom: '1px solid var(--border-subtle)', fontSize: '0.85rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Ping Latency</span>
@@ -141,7 +141,7 @@ export default function Settings() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0', fontSize: '0.85rem' }}>
               <span style={{ color: 'var(--text-muted)' }}>Interactive Docs</span>
-              <a href="http://localhost:8001/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>
+              <a href={`${FASTAPI_BASE_URL}/docs`} target="_blank" rel="noopener noreferrer" style={{ color: '#38bdf8', textDecoration: 'underline' }}>
                 Open Swagger UI
               </a>
             </div>

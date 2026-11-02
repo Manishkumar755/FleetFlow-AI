@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 
 # Virtual environments
@@ -29,13 +30,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# Static & media files
+media/
+staticfiles/
+
 # Model artifacts & large datasets
-*.joblib
 *.pkl
 *.csv
-ml_service/artifacts/*.joblib
-ml_service/models/*.joblib
-!ml_service/models/.gitkeep
+!ml_service/artifacts/*.joblib
 
 # IDEs & OS files
 .vscode/

@@ -1,3 +1,4 @@
+import os
 import logging
 import joblib
 from contextlib import asynccontextmanager
@@ -48,9 +49,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+raw_origins = os.environ.get("ALLOWED_ORIGINS", "")
+if raw_origins:
+    cors_origins = [orig.strip() for orig in raw_origins.split(",") if orig.strip()]
+else:
+    cors_origins = settings.cors_origins_list or ["http://localhost:5173", "http://127.0.0.1:5173"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,9 +1,8 @@
 import os
 from pathlib import Path
-from urllib.parse import urlparse
-
-from django.core.exceptions import ImproperlyConfigured
+import dj_database_url
 from dotenv import load_dotenv
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,27 +12,13 @@ if not dotenv_path.exists():
 if dotenv_path.exists():
     load_dotenv(dotenv_path)
 
-DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-key")
+DEBUG = os.environ.get("DEBUG") == "True"
 
-SECRET_KEY = os.getenv("SECRET_KEY", "").strip()
-if not SECRET_KEY:
-    if DEBUG:
-        SECRET_KEY = "dev-only-insecure-fleetflow-phase1-key"
-    else:
-        raise ImproperlyConfigured("SECRET_KEY must be set when DEBUG=False")
+allowed_hosts_env = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0,.onrender.com")
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(",") if host.strip()]
 
-INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "").strip()
-if not INTERNAL_API_KEY:
-    if DEBUG:
-        INTERNAL_API_KEY = "dev-only-internal-api-key"
-    else:
-        raise ImproperlyConfigured("INTERNAL_API_KEY must be set when DEBUG=False")
-
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
-    if host.strip()
-]
+INTERNAL_API_KEY = os.environ.get("INTERNAL_API_KEY", "dev-only-internal-api-key")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -52,8 +37,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -83,30 +69,14 @@ TEMPLATES = [
 WSGI_APPLICATION = "fleetflow.wsgi.application"
 ASGI_APPLICATION = "fleetflow.asgi.application"
 
-DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
-
-if DATABASE_URL.startswith("postgres://") or DATABASE_URL.startswith("postgresql://"):
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-    parsed = urlparse(DATABASE_URL)
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": parsed.path.lstrip("/"),
-            "USER": parsed.username or "",
-            "PASSWORD": parsed.password or "",
-            "HOST": parsed.hostname or "localhost",
-            "PORT": parsed.port or 5432,
-            "OPTIONS": {"connect_timeout": 10},
-        }
-    }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+# Database Configuration with Neon / PostgreSQL support and SQLite fallback for local dev
+DATABASES = {
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -125,11 +95,11 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
-from datetime import timedelta
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -146,7 +116,7 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
-cors_env = os.getenv("CORS_ALLOWED_ORIGINS", "")
+cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
 if cors_env:
     CORS_ALLOWED_ORIGINS = [orig.strip() for orig in cors_env.split(",") if orig.strip()]
 else:
@@ -155,6 +125,8 @@ else:
         "http://127.0.0.1:5173",
     ]
 
-FASTAPI_SERVICE_URL = os.getenv("FASTAPI_SERVICE_URL", "http://localhost:8001")
+ML_SERVICE_URL = os.environ.get("ML_SERVICE_URL", "http://localhost:8001")
+FASTAPI_SERVICE_URL = ML_SERVICE_URL
+
 PLATFORM_VERSION = "1.0.0-phase4"
 IMPLEMENTATION_PHASE = 4
