@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Environment variables & local secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# SQLite fallback database
+*.sqlite3
+db.sqlite3
+
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Model artifacts & large datasets
+*.joblib
+*.pkl
+*.csv
+ml_service/artifacts/*.joblib
+ml_service/models/*.joblib
+!ml_service/models/.gitkeep
+
+# IDEs & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test & coverage
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*

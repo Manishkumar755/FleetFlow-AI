@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL 16 Database
+  # ----------------------------------------------------------------------------
+  fleetflow-db:
+    image: postgres:16-alpine
+    container_name: fleetflow-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_NAME:-fleetflow_db}
+      POSTGRES_USER: ${DB_USER:-fleetflow_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fleetflow_secure_pass}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fleetflow_user} -d ${DB_NAME:-fleetflow_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # Django Main Backend (Optional in Docker Compose)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fleetflow-backend
+    restart: unless-stopped
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://${DB_USER:-fleetflow_user}:${DB_PASSWORD:-fleetflow_secure_pass}@fleetflow-db:5432/${DB_NAME:-fleetflow_db}
+      - FASTAPI_SERVICE_URL=http://ml-service:8001
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+    depends_on:
+      fleetflow-db:
+        condition: service_healthy
+
+  # ----------------------------------------------------------------------------
+  # FastAPI ML Microservice (Optional in Docker Compose)
+  # ----------------------------------------------------------------------------
+  ml-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: fleetflow-ml-service
+    restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    volumes:
+      - ./ml_service:/app
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - DJANGO_SERVICE_URL=http://backend:8000
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-fleetflow-internal-service-secret-key-2026}
+
+volumes:
+  postgres_data:
+    driver: local
