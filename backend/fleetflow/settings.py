@@ -116,14 +116,19 @@ REST_FRAMEWORK = {
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
+
 cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", "")
-if cors_env:
-    CORS_ALLOWED_ORIGINS = [orig.strip() for orig in cors_env.split(",") if orig.strip()]
-else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://frontend-weld-gamma-51.vercel.app",
+] + [o.strip().rstrip("/") for o in cors_env.split(",") if o.strip()]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [r"^https://.*\.vercel\.app$"]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://frontend-weld-gamma-51.vercel.app",
+] + [o.strip().rstrip("/") for o in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
 
 ML_SERVICE_URL = os.environ.get("ML_SERVICE_URL", "http://localhost:8001")
 FASTAPI_SERVICE_URL = ML_SERVICE_URL
