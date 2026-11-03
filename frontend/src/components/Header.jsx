@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Server, Cpu, CheckCircle2, XCircle } from 'lucide-react';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { FASTAPI_BASE_URL } from '../api/client';
 
 export default function Header({ djangoOnline, fastapiOnline }) {
   const { user } = useAuth();
+  const [mlStatus, setMlStatus] = useState('Checking...');
+
+  useEffect(() => {
+    let isMounted = true;
+    const healthUrl = `${FASTAPI_BASE_URL}/health`;
+    console.log(`ML health check URL: ${healthUrl}`);
+
+    axios
+      .get(healthUrl, { timeout: 5000 })
+      .then((res) => {
+        if (!isMounted) return;
+        if (res.status === 200) {
+          setMlStatus('Online');
+        } else {
+          setMlStatus('Offline');
+        }
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setMlStatus('Offline');
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <header className="topbar">
@@ -54,9 +82,13 @@ export default function Header({ djangoOnline, fastapiOnline }) {
         >
           <Cpu size={14} color="#a78bfa" />
           <span style={{ color: 'var(--text-muted)' }}>FastAPI ML:</span>
-          {fastapiOnline ? (
+          {mlStatus === 'Online' ? (
             <span style={{ color: '#34d399', display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 600 }}>
-              <CheckCircle2 size={12} /> Ready
+              <CheckCircle2 size={12} /> Online
+            </span>
+          ) : mlStatus === 'Offline' ? (
+            <span style={{ color: '#fb7185', display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 600 }}>
+              <XCircle size={12} /> Offline
             </span>
           ) : (
             <span style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 600 }}>
