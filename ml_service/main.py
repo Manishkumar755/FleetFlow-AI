@@ -49,11 +49,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-raw_origins = os.environ.get("ALLOWED_ORIGINS", "")
+raw_origins = os.environ.get("ALLOWED_ORIGINS")
 if raw_origins:
     cors_origins = [orig.strip() for orig in raw_origins.split(",") if orig.strip()]
 else:
-    cors_origins = settings.cors_origins_list or ["http://localhost:5173", "http://127.0.0.1:5173"]
+    cors_origins = ["http://localhost:5173", "https://frontend-weld-gamma-51.vercel.app"]
+
+if not cors_origins:
+    cors_origins = ["http://localhost:5173", "https://frontend-weld-gamma-51.vercel.app"]
 
 app.add_middleware(
     CORSMiddleware,
