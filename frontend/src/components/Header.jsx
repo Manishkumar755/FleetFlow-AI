@@ -6,30 +6,56 @@ import { FASTAPI_BASE_URL } from '../api/client';
 
 export default function Header({ djangoOnline, fastapiOnline }) {
   const { user } = useAuth();
-  const [mlStatus, setMlStatus] = useState('Checking...');
+  const [mlStatus, setMlStatus] = useState('Waking up...');
 
   useEffect(() => {
     let isMounted = true;
+    let retryTimer = null;
     const healthUrl = `${FASTAPI_BASE_URL}/health`;
-    console.log(`ML health check URL: ${healthUrl}`);
 
-    axios
-      .get(healthUrl, { timeout: 5000 })
-      .then((res) => {
-        if (!isMounted) return;
+    const updateStatus = (status) => {
+      if (!isMounted) return;
+      setMlStatus(status);
+      console.log(`ML health: ${status} ${healthUrl}`);
+    };
+
+    const performHealthCheck = async () => {
+      updateStatus('Waking up...');
+
+      // First attempt with 60000ms timeout for cold start
+      try {
+        const res = await axios.get(healthUrl, { timeout: 60000 });
         if (res.status === 200) {
-          setMlStatus('Online');
-        } else {
-          setMlStatus('Offline');
+          updateStatus('Online');
+          return;
         }
-      })
-      .catch(() => {
+      } catch (err) {
+        // First attempt failed; proceed to retry
+      }
+
+      if (!isMounted) return;
+
+      // Wait 5 seconds and retry once
+      retryTimer = setTimeout(async () => {
         if (!isMounted) return;
-        setMlStatus('Offline');
-      });
+        try {
+          const retryRes = await axios.get(healthUrl, { timeout: 60000 });
+          if (retryRes.status === 200) {
+            updateStatus('Online');
+            return;
+          }
+          updateStatus('Offline');
+        } catch (retryErr) {
+          updateStatus('Offline');
+        }
+      }, 5000);
+    };
+
+    performHealthCheck();
 
     return () => {
       isMounted = false;
+      if (retryTimer) clearTimeout(retryTimer);
     };
   }, []);
 
@@ -92,7 +118,7 @@ export default function Header({ djangoOnline, fastapiOnline }) {
             </span>
           ) : (
             <span style={{ color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '2px', fontWeight: 600 }}>
-              <XCircle size={12} /> Checking...
+              <XCircle size={12} /> Waking up...
             </span>
           )}
         </div>

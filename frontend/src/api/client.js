@@ -3,7 +3,7 @@ import axios from 'axios';
 const rawApiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_DJANGO_API_URL || 'http://localhost:8000';
 export const DJANGO_BASE_URL = rawApiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
 
-const rawMlUrl = (import.meta.env.VITE_ML_API_URL || "http://localhost:8001");
+const rawMlUrl = (import.meta.env.VITE_ML_API_URL || import.meta.env.VITE_FASTAPI_API_URL || "http://localhost:8001");
 export const FASTAPI_BASE_URL = rawMlUrl.replace(/\/$/, '');
 
 // Django REST Backend Client

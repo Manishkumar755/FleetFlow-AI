@@ -187,7 +187,7 @@ export default function Dashboard({ onStatusUpdate }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff' }}>FastAPI ML Microservice</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Port 8001 • Random Forest, HistGradBoost, IsolationForest</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Render • Random Forest, HistGradBoost, IsolationForest</div>
               </div>
               <span className={`badge ${serviceHealth.fastapi ? 'badge-success' : 'badge-danger'}`}>
                 {serviceHealth.fastapi ? 'Operational' : 'Offline'}
